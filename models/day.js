@@ -9,7 +9,17 @@ var Activity = require('./activity');
 var Day = db.define('day', {
 	num: {
 		type: Sequelize.INTEGER,
-		autoIncrement: true
+		// autoIncrement: true
+		allowNull:false
+	}
+}, {
+	hooks: {
+		// 'beforeValidate' : function( newDay) {
+		// 	Day.count()
+		// 	.then(function(total) {
+		// 		newDay.num = total;
+		// 	})
+		// }
 	}
 })
 

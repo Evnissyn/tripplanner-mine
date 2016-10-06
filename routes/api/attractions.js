@@ -38,3 +38,44 @@ router.get('/activities', function(req, res, next) {
   })
 })
 
+//-----------------------------------------------------
+
+router.get('/hotels/:id', function(req, res, next) {
+  var findingHotels = Hotel.findOne({
+    where: {
+      id: req.params.id
+    },
+    include: [Place]
+  })
+  .then(function(findingHotels) {
+    res.json(findingHotels);
+  })
+
+})
+
+router.get('/restaurants/:id', function(req, res, next) {
+
+  var findingRestaurants = Restaurant.findOne({
+    where: {
+      id: req.params.id
+    },
+    include: [Place]
+  })
+  .then(function(findingRestaurants) {
+    res.json(findingRestaurants);
+  })
+})
+
+router.get('/activities/:id', function(req, res, next) {
+
+  var findingActivities = Activity.findOne({
+    where: {
+      id: req.params.id
+    },
+    include: [Place]
+  })
+  .then(function(findingActivities) {
+    res.json(findingActivities);
+  })
+})
+

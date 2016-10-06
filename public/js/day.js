@@ -13,132 +13,226 @@
  * This module has one public method: `.create()`, used by `days.js`.
  */
 
-var dayModule = (function () {
 
-  // jQuery selections
 
-  var $dayButtons, $dayTitle;
-  $(function () {
-    $dayButtons = $('.day-buttons');
-    $dayTitle = $('#day-title > span');
-  });
+var dayModule = (function (){
 
-  // Day class and setup
 
-  function Day (data) {
-    // for brand-new days
-    this.number = 0;
-    this.hotel = null;
-    this.restaurants = [];
-    this.activities = [];
-    // for days based on existing data
-    utilsModule.merge(data, this);
-    if (this.hotel) this.hotel = attractionsModule.getEnhanced(this.hotel);
-    this.restaurants = this.restaurants.map(attractionsModule.getEnhanced);
-    this.activities = this.activities.map(attractionsModule.getEnhanced);
-    // remainder of constructor
-    this.buildButton().showButton();
-  }
+  $(function() {
 
-  // automatic day button handling
+    $.get('/api/days')
+    .then(function(days){
+     
+      days.forEach(function(day, index){
+        index++;
+        var str = `<button class="btn btn-circle day-btn" value="${day.id}">${index}</button>`
+        $(str).insertBefore($('#day-add'));
+      })
+    })
+    .then(function(){
+      $('.day-btn:first-child').addClass('current-day');
+    })
 
-  Day.prototype.setNumber = function (num) {
-    this.number = num;
-    this.$button.text(num);
-  };
+    $('#day-add').on('click', function() {
+      $.post('/api/days')
+      .then(function(newDay) {
+        var str = '<button class="btn btn-circle day-btn">'+newDay.num+'</button>'
+        $(str).insertBefore($('#day-add'));
+      })
+    })
+  })
 
-  Day.prototype.buildButton = function () {
-    this.$button = $('<button class="btn btn-circle day-btn"></button>')
-      .text(this.number);
-    var self = this;
-    this.$button.on('click', function (){
-      this.blur(); // removes focus box from buttons
-      tripModule.switchTo(self);
-    });
-    return this;
-  };
 
-  Day.prototype.showButton = function () {
-    this.$button.appendTo($dayButtons);
-    return this;
-  };
 
-  Day.prototype.hideButton = function () {
-    this.$button.detach(); // detach removes from DOM but not from memory
-    return this;
-  };
 
-  Day.prototype.show = function () {
-    // day UI
-    this.$button.addClass('current-day');
-    $dayTitle.text('Day ' + this.number);
-    // attractions UI
-    function show (attraction) { attraction.show(); }
-    if (this.hotel) show(this.hotel);
-    this.restaurants.forEach(show);
-    this.activities.forEach(show);
-  };
-
-  Day.prototype.hide = function () {
-    // day UI
-    this.$button.removeClass('current-day');
-    $dayTitle.text('Day not Loaded');
-    // attractions UI
-    function hide (attraction) { attraction.hide(); }
-    if (this.hotel) hide(this.hotel);
-    this.restaurants.forEach(hide);
-    this.activities.forEach(hide);
-  };
-
-  // day updating
-
-  Day.prototype.addAttraction = function (attraction) {
-    // adding to the day object
-    switch (attraction.type) {
-      case 'hotel':
-        if (this.hotel) this.hotel.hide();
-        this.hotel = attraction;
-        break;
-      case 'restaurant':
-        utilsModule.pushUnique(this.restaurants, attraction);
-        break;
-      case 'activity':
-        utilsModule.pushUnique(this.activities, attraction);
-        break;
-      default: console.error('bad type:', attraction);
-    }
-    // activating UI
-    attraction.show();
-  };
-
-  Day.prototype.removeAttraction = function (attraction) {
-    // removing from the day object
-    switch (attraction.type) {
-      case 'hotel':
-        this.hotel = null;
-        break;
-      case 'restaurant':
-        utilsModule.remove(this.restaurants, attraction);
-        break;
-      case 'activity':
-        utilsModule.remove(this.activities, attraction);
-        break;
-      default: console.error('bad type:', attraction);
-    }
-    // deactivating UI
-    attraction.hide();
-  };
-
-  // globally accessible module methods
 
   var publicAPI = {
+    getCurrentDay : function() {
+      console.log($('#current-day'));
+      return $('#current-day').val();
+    },
 
-    create: function (databaseDay) {
-      return new Day(databaseDay);
+
+    showRestaurants : function (){
+      $.get('/api/restaurants')
+      .then(function(restaurants){
+        restaurants.forEach(function(restaurant){
+          $("#restaurant-choices").append(`<option value="${restaurant.id}">${restaurant.name}</option>`);
+        })
+      })
     }
+
+
 
   };
 
   return publicAPI;
 
-}());
+   
+})()
+
+
+
+
+
+
+
+
+
+// var dayModule = (function () {
+
+//   // jQuery selections
+
+//   var $dayButtons, $dayTitle;
+//   $(function () {
+//     $dayButtons = $('.day-buttons');
+//     $dayTitle = $('#day-title > span');
+//   });
+
+//   // Day class and setup
+
+//   function Day (data) {
+//     // for brand-new days
+//     this.number = 0;
+//     this.hotel = null;
+//     this.restaurants = [];
+//     this.activities = [];
+//     // for days based on existing data
+//     utilsModule.merge(data, this);
+//     if (this.hotel) this.hotel = attractionsModule.getEnhanced(this.hotel);
+//     this.restaurants = this.restaurants.map(attractionsModule.getEnhanced);
+//     this.activities = this.activities.map(attractionsModule.getEnhanced);
+//     // remainder of constructor
+//     this.buildButton().showButton();
+//   }
+
+//   // automatic day button handling
+
+  // $(function() {
+
+  //   $.get('/api/days')
+  //   .then(function(days){
+     
+  //     days.forEach(function(day, index){
+  //       index++;
+  //       var str = `<button class="btn btn-circle day-btn" value="${day.id}">${index}</button>`
+  //       $(str).insertBefore($('#day-add'));
+  //     })
+  //   })
+  //   .then(function(){
+  //     $('.day-btn:first-child').addClass('current-day');
+  //   })
+
+  //   $('#day-add').on('click', function() {
+  //     $.post('/api/days')
+  //     .then(function(newDay) {
+  //       var str = '<button class="btn btn-circle day-btn">'+newDay.num+'</button>'
+  //       $(str).insertBefore($('#day-add'));
+  //     })
+  //   })
+
+    
+  // })
+
+
+
+//   Day.prototype.setNumber = function (num) {
+//     this.number = num;
+//     this.$button.text(num);
+//   };
+
+//   Day.prototype.buildButton = function () {
+//     this.$button = $('<button class="btn btn-circle day-btn"></button>')
+//       .text(this.number);
+//     var self = this;
+//     this.$button.on('click', function (){
+//       this.blur(); // removes focus box from buttons
+//       tripModule.switchTo(self);
+//     });
+//     return this;
+//   };
+
+//   Day.prototype.showButton = function () {
+//     this.$button.appendTo($dayButtons);
+//     return this;
+//   };
+
+//   Day.prototype.hideButton = function () {
+//     this.$button.detach(); // detach removes from DOM but not from memory
+//     return this;
+//   };
+
+//   Day.prototype.show = function () {
+//     // day UI
+//     this.$button.addClass('current-day');
+//     $dayTitle.text('Day ' + this.number);
+//     // attractions UI
+//     function show (attraction) { attraction.show(); }
+//     if (this.hotel) show(this.hotel);
+//     this.restaurants.forEach(show);
+//     this.activities.forEach(show);
+//   };
+
+//   Day.prototype.hide = function () {
+//     // day UI
+//     this.$button.removeClass('current-day');
+//     $dayTitle.text('Day not Loaded');
+//     // attractions UI
+//     function hide (attraction) { attraction.hide(); }
+//     if (this.hotel) hide(this.hotel);
+//     this.restaurants.forEach(hide);
+//     this.activities.forEach(hide);
+//   };
+
+  // day updating
+
+  // Day.prototype.addAttraction = function (attraction) {
+  //   // adding to the day object
+  //   switch (attraction.type) {
+  //     case 'hotels':
+  //       if (this.hotel) this.hotel.hide();
+  //       this.hotel = attraction;
+  //       break;
+  //     case 'restaurants':
+  //       utilsModule.pushUnique(this.restaurants, attraction);
+  //       break;
+  //     case 'activities':
+  //       utilsModule.pushUnique(this.activities, attraction);
+  //       break;
+  //     default: console.error('bad type:', attraction);
+  //   }
+  //   // activating UI
+  //   attraction.show();
+  // }
+
+//   Day.prototype.removeAttraction = function (attraction) {
+//     // removing from the day object
+//     switch (attraction.type) {
+//       case 'hotel':
+//         this.hotel = null;
+//         break;
+//       case 'restaurant':
+//         utilsModule.remove(this.restaurants, attraction);
+//         break;
+//       case 'activity':
+//         utilsModule.remove(this.activities, attraction);
+//         break;
+//       default: console.error('bad type:', attraction);
+//     }
+//     // deactivating UI
+//     attraction.hide();
+//   };
+
+//   // globally accessible module methods
+
+//   var publicAPI = {
+
+//     create: function (databaseDay) {
+//       return new Day(databaseDay);
+//     }
+
+//   };
+
+//   return publicAPI;
+
+// }());
